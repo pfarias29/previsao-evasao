@@ -44,5 +44,4 @@ padroes = [
     padrao_normal,
     padrao_com_nome,
     padrao_nome_antes,
-    padrao_enade
 ]
