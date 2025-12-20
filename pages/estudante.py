@@ -1,53 +1,40 @@
 import streamlit as st
-import pdfplumber
-import re
-import pandas as pd
-from io import StringIO
-import utils.padroes as padroes
+from utils.read_file import read_file_pdf
 
-st.page_link("app.py", label="Voltar", icon=":material/keyboard_return:")
+st.set_page_config(
+    page_title="Área do Estudante",
+    page_icon="👨‍🎓",
+    layout="centered"
+)
 
-st.title("Área do estudante")
+st.page_link("app.py", label="⬅ Voltar")
 
-st.write("##### Aqui você poderá inserir seu histórico para conseguir uma previsão de evasão.",)
-st.write("Baixe um exemplo do arquivo de entrada ou insira seu histórico para analisarmos.")
+st.title("👨‍🎓 Área do Estudante")
 
-uploaded_file = st.file_uploader("Selecionar histórico (PDF)", type="pdf")
+st.markdown("""
+### 📌 O que você pode fazer aqui
+- Enviar seu histórico acadêmico
+- Visualizar suas disciplinas
+- Obter uma **previsão de evasão**
+""")
 
-def read_file_pdf(arq):
-    text = ""
+st.divider()
 
-    with pdfplumber.open(arq) as pdf:
-        for page in pdf.pages:
-            text += page.extract_text() + "\n"
+with st.container(border=True):
+    st.subheader("📄 Envio do histórico")
+    uploaded_file = st.file_uploader(
+        "Selecione seu histórico em PDF",
+        type="pdf"
+    )
 
-    matricula_match = re.search(r"Matrícula:\s*(\d+)", text)
-    matricula = matricula_match.group(1) if matricula_match else None
-
-    linhas = text.splitlines()
-    dados = []
-
-    for linha in linhas:
-        for p in padroes.padroes:
-            m = p.search(linha)
-            if m:
-                dados.append({
-                    "matricula": matricula,
-                    "ano_periodo": m.groupdict().get("ano"),
-                    "codigo": m.groupdict().get("codigo"),
-                    "nome": m.groupdict().get("nome"),
-                    "carga_horaria": m.groupdict().get("ch"),
-                    "turma": m.groupdict().get("turma"),
-                    "frequencia": m.groupdict().get("freq"),
-                    "nota": m.groupdict().get("nota"),
-                    "situacao": m.groupdict().get("situacao")
-                })
-                break
-
-
-    df = pd.DataFrame(dados)
-
-    print(df) 
 
 if uploaded_file:
-    read_file_pdf(uploaded_file)
+    if "df" not in st.session_state:
+        st.session_state.df = read_file_pdf(uploaded_file)
+
+    st.subheader("✏️ Edite seus dados")
+    st.session_state.df = st.data_editor(
+        st.session_state.df,
+        use_container_width=True,
+        num_rows="dynamic"
+    )
