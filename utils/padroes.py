@@ -40,8 +40,16 @@ padrao_enade = re.compile(
     r"(?P<ch>\d+)\s+--\s+--\s+---\s+--"
 )
 
+padrao_obrigatoria = re.compile(
+    r"(?P<ano>\d{4}\.\d)\s+"
+    r"(?P<codigo>[A-Z]{3}\d{4})\s+"
+    r"(?P<ch>\d+)\s+"
+    r"(?P<turma>[A-Z0-9]{1,2})\s+"
+    r"(?P<freq>\d{2,3},\d)\s+"
+    r"(?P<nota>[A-Z]{2})\s+"
+    r"(?P<situacao>APR|REP|REPF|REPMF)"
+)
+
 padroes = [
-    padrao_normal,
-    padrao_com_nome,
-    padrao_nome_antes,
+    padrao_obrigatoria
 ]
