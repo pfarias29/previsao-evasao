@@ -29,12 +29,14 @@ with st.container(border=True):
 
 
 if uploaded_file:
-    if "df" not in st.session_state:
-        st.session_state.df = read_file_pdf(uploaded_file)
 
-    st.subheader("✏️ Edite seus dados")
-    st.session_state.df = st.data_editor(
-        st.session_state.df,
-        use_container_width=True,
-        num_rows="dynamic"
-    )
+    with st.spinner("📊 Coletando os dados..."):
+        if "df" not in st.session_state:
+            st.session_state.df = read_file_pdf(uploaded_file)
+
+        st.subheader("✏️ Edite seus dados")
+        st.session_state.df = st.data_editor(
+            st.session_state.df,
+            use_container_width=True,
+            num_rows="dynamic"
+        )
