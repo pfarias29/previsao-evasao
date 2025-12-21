@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 from utils.read_file import read_file_pdf
 from utils.transform_df import transform_df
 
@@ -28,18 +29,27 @@ with st.container(border=True):
         type="pdf"
     )
 
-
 if uploaded_file:
 
     with st.spinner("📊 Coletando os dados..."):
         if "df" not in st.session_state:
             st.session_state.df = read_file_pdf(uploaded_file)
 
-        st.subheader("✏️ Edite seus dados")
-        st.session_state.df = st.data_editor(
-            st.session_state.df,
-            use_container_width=True,
-            num_rows="dynamic"
-        )
+    st.subheader("✏️ Edite seus dados")
+    st.session_state.df = st.data_editor(
+        st.session_state.df,
+        num_rows="dynamic"
+    )
 
+if st.button("📤 Enviar dados"):
+    if not st.session_state.df.empty:
         st.session_state.df = transform_df(st.session_state.df)
+        print(st.session_state.df)
+    else:
+        st.markdown(
+            "<p style='color: red; font-size: 20px;'>"
+            "Selecione algum documento para ser enviado!"
+            "</p>",
+            unsafe_allow_html=True
+        )   
+

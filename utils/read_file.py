@@ -34,3 +34,8 @@ def read_file_pdf(arq):
 
 
     return pd.DataFrame(dados)
+
+def read_file_csv(arq):
+    df = pd.read_csv(arq)
+
+    return df
