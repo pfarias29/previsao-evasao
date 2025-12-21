@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from utils.read_file import read_file_pdf
+from utils.transform_df import transform_df
 
 st.set_page_config(
     page_title="Área do Professor",
@@ -53,6 +54,9 @@ if uploaded_files:
                 [st.session_state.df, df_pdf],
                 ignore_index=True
             )
+
+        st.session_state.df = transform_df(st.session_state.df)
+        print(st.session_state.df)
 
     st.divider()
     st.subheader("✏️ Edite os dados")

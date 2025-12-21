@@ -1,5 +1,6 @@
 import streamlit as st
 from utils.read_file import read_file_pdf
+from utils.transform_df import transform_df
 
 st.set_page_config(
     page_title="Área do Estudante",
@@ -40,3 +41,5 @@ if uploaded_file:
             use_container_width=True,
             num_rows="dynamic"
         )
+
+        st.session_state.df = transform_df(st.session_state.df)
