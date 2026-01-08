@@ -1,5 +1,4 @@
 import streamlit as st
-import pandas as pd
 from utils.read_file import read_file_pdf
 from utils.transform_df import transform_df
 
