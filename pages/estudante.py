@@ -1,6 +1,7 @@
 import streamlit as st
 from utils.read_file import read_file_pdf
 from utils.transform_df import transform_df
+from utils.decision_tree_model import predict_student
 
 st.set_page_config(
     page_title="Área do Estudante",
@@ -42,8 +43,8 @@ if uploaded_file:
 
 if st.button("📤 Enviar dados"):
     if not st.session_state.df.empty:
-        st.session_state.df = transform_df(st.session_state.df)
-        print(st.session_state.df)
+        transformed_data = transform_df(st.session_state.df)
+        predict_student(transformed_data)
     else:
         st.markdown(
             "<p style='color: red; font-size: 20px;'>"
