@@ -23,13 +23,10 @@ def predict_student(student: pd.DataFrame):
     prediction = model.predict(student)
     probability = model.predict_proba(student)
 
-    # TODO
-    # Fazer o front para mostrar a previsão
-    # Testar com diferentes alunos, fazendo alterações na tabela de matérias
-    # Enviar para o Cássio alterações na hora de salvar o modelo
-
     r = ["Formou", "Evadiu"]
-    print(f"\nPrevisão: {r[prediction[0]]}")
+    print(r[prediction[0]])
+
+    return prediction[0]
 
 
 
