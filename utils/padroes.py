@@ -50,6 +50,8 @@ padrao_obrigatoria = re.compile(
     r"(?P<situacao>APR|REP|REPF|REPMF)"
 )
 
+padrao_nome = re.compile(r"^[A-ZÁÉÍÓÚÃÕÇ0-9\s:()-]+$")
+
 padroes = [
     padrao_obrigatoria
 ]
