@@ -2,15 +2,14 @@ import joblib
 import pandas as pd
 
 def load_decision_tree():
-   
     return joblib.load('utils/modelo_decision_tree.joblib')
 
 
 def predict_student(student: pd.DataFrame):
 
-    data = load_decision_tree()
-    model = data["model"]
-    columns = data["columns"]
+    clf = load_decision_tree()
+    model = clf["model"]
+    columns = clf["columns"]
 
     student = transforma_colunas(student=student, codigos=columns) 
 
@@ -21,10 +20,11 @@ def predict_student(student: pd.DataFrame):
 
 
     prediction = model.predict(student)
-    probability = model.predict_proba(student)
+    probability = model.predict_proba(student)[0]
 
     r = ["Formou", "Evadiu"]
     print(r[prediction[0]])
+    print(f'{probability[prediction[0]] * 100}% de chance de {r[prediction[0]]}')
 
     return prediction[0]
 

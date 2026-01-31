@@ -92,13 +92,13 @@ if uploaded_file:
     )
 
 if st.button("📤 Enviar dados"):
-    if not st.session_state.df.empty:
+    try:
         transformed_data = transform_df(st.session_state.df)
         prediction = predict_student(transformed_data)
 
         modal_previsao(previsao=prediction)
 
-    else:
+    except AttributeError:
         st.markdown(
             "<p style='color: red; font-size: 20px;'>"
             "Selecione algum documento para ser enviado!"
