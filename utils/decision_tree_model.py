@@ -18,7 +18,6 @@ def predict_student(student: pd.DataFrame):
         fill_value=-1
     )
 
-
     prediction = model.predict(student)
     probability = model.predict_proba(student)[0]
 

@@ -93,7 +93,7 @@ if uploaded_file:
 
 if st.button("📤 Enviar dados"):
     try:
-        transformed_data = transform_df(st.session_state.df)
+        transformed_data, matriculas = transform_df(st.session_state.df)
         prediction = predict_student(transformed_data)
 
         modal_previsao(previsao=prediction)

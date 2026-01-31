@@ -19,8 +19,9 @@ mencao_map = {
 def transform_df(df: pd.DataFrame):
     df_transformed = pd.pivot_table(data=df, index='matricula', columns="codigo", values='nota', aggfunc="max", fill_value="Não cursado").reset_index()
 
+    matriculas = df_transformed["matricula"]
 
     colunas_materias = df_transformed.columns.difference(["matricula"])
     df_transformed[colunas_materias] = df_transformed[colunas_materias].replace(mencao_map)
 
-    return df_transformed.drop(columns=['matricula'])
+    return df_transformed.drop(columns=['matricula']), matriculas
