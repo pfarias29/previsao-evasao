@@ -2,7 +2,7 @@ import joblib
 import pandas as pd
 
 def load_decision_tree():
-    return joblib.load('utils/modelo_decision_tree.joblib')
+    return joblib.load('utils/modelo_logistic_regression.joblib')
 
 
 def predict_student(student: pd.DataFrame):
@@ -118,8 +118,8 @@ DISCIPLINAS = {
     200271: ["MAT0374"],
     201600: ["CIC0234"]
 }
-def transforma_colunas(student: pd.DataFrame, codigos: list):
 
+def transforma_colunas(student: pd.DataFrame, codigos: list):
     for codigo_antigo in codigos:
         novos_codigos = DISCIPLINAS[int(codigo_antigo)]
 
