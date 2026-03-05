@@ -20,7 +20,7 @@ def read_file_pdf(arq):
     for linha in linhas:
         linha = linha.strip()
 
-        if (padrao_nome.match(linha)
+        if (linha.isupper()
             and not linha.startswith(("20", "--"))
             and not re.search(r"[A-Z]{3}\d{4}", linha)
         ):
