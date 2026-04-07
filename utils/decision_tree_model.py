@@ -1,13 +1,26 @@
 import joblib
 import pandas as pd
+from utils.exceptions import InvalidModelException
 
-def load_decision_tree():
-    return joblib.load('utils/modelo_logistic_regression.joblib')
+from utils.select_modelos_enum import Modelos
+
+def load_decision_tree(model: str):
+    match (model):
+        case Modelos.ARVORE_DECISAO_ANTIGO.value:
+            return joblib.load('utils/modelo_decision_tree.joblib')
+        case Modelos.ARVORE_DECISAO_NOVO.value:
+            return joblib.load('utils/modelo_disciplinas_atuais_decision_tree.joblib')
+        case Modelos.REGRESSAO_LOGISTICA.value:
+            return joblib.load('utils/modelo_logistic_regression.joblib')
+        case Modelos.RANDOM_FOREST.value:
+            return joblib.load('utils/modelo_random_forest.joblib')
+        case _:
+            raise InvalidModelException
 
 
-def predict_student(student: pd.DataFrame):
+def predict_student(student: pd.DataFrame, model: str):
 
-    clf = load_decision_tree()
+    clf = load_decision_tree(model)
     model = clf["model"]
     columns = clf["columns"]
 

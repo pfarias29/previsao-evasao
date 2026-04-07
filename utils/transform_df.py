@@ -1,6 +1,5 @@
 import pandas as pd
 
-
 mencao_map = {
     'SR': 0.0,
     'II': 1.0,
@@ -22,6 +21,6 @@ def transform_df(df: pd.DataFrame):
     matriculas = df_transformed["matricula"]
 
     colunas_materias = df_transformed.columns.difference(["matricula"])
-    df_transformed[colunas_materias] = df_transformed[colunas_materias].replace(mencao_map)
+    df_transformed[colunas_materias] = df_transformed[colunas_materias].replace(mencao_map)        
 
     return df_transformed.drop(columns=['matricula']), matriculas

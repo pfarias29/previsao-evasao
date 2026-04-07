@@ -1,7 +1,9 @@
 import pdfplumber
 import pandas as pd
 import re
-from .padroes import padroes, padrao_nome
+from .padroes import padroes
+from utils.exceptions import EmtpyDocumentException
+
 
 def read_file_pdf(arq):
     text = ""
@@ -44,10 +46,17 @@ def read_file_pdf(arq):
                 nome_atual = None
                 break
 
+    if(len(dados) == 0):
+        raise EmtpyDocumentException
+
 
     return pd.DataFrame(dados)
 
 def read_file_csv(arq):
+
     df = pd.read_csv(arq)
+
+    if(len(df.index) == 0):
+        raise EmtpyDocumentException
 
     return df

@@ -2,6 +2,9 @@ import streamlit as st
 from utils.read_file import read_file_pdf
 from utils.transform_df import transform_df
 from utils.decision_tree_model import predict_student
+from utils.select_modelos_enum import Modelos
+from utils.exceptions import InvalidModelException, EmtpyDocumentException
+
 
 st.set_page_config(
     page_title="Área do Estudante",
@@ -62,6 +65,29 @@ def modal_previsao(previsao):
             unsafe_allow_html=True
         )
 
+def button_enviar_dados():
+    if st.button("📤 Enviar dados"):
+        try:
+            transformed_data, matriculas = transform_df(st.session_state.df)
+            prediction = predict_student(transformed_data, option)
+
+            modal_previsao(previsao=prediction)
+
+        except AttributeError:
+            st.markdown(
+                "<p style='color: red; font-size: 20px;'>"
+                "Selecione algum documento para ser enviado!"
+                "</p>",
+                unsafe_allow_html=True
+            ) 
+        except InvalidModelException:
+            st.markdown(
+                "<p style='color: red; font-size: 20px;'>"
+                "Selecione algum modelo para ser utilizado!"
+                "</p>",
+                unsafe_allow_html=True
+            ) 
+
 st.title("👨‍🎓 Área do Estudante")
 
 st.markdown("""
@@ -70,6 +96,45 @@ st.markdown("""
 - Visualizar suas disciplinas
 - Obter uma **previsão de evasão**
 """)
+
+option = st.selectbox(
+    "Selecione o modelo que deseja utilizar",
+    ("Selecione uma opção",
+     Modelos.ARVORE_DECISAO_ANTIGO.value,
+     Modelos.ARVORE_DECISAO_NOVO.value,
+     Modelos.REGRESSAO_LOGISTICA.value,
+     Modelos.RANDOM_FOREST.value)
+)
+
+match option:
+    case Modelos.ARVORE_DECISAO_ANTIGO.value:
+        st.write("""
+-  Divide os dados de forma que os subconjuntos sejam o mais "puros" possíveis;
+-  98,60% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram)
+-  92,89% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram)
+-  utiliza o um currículo mais antigo como base para as matérias do curso;
+""")
+    case Modelos.ARVORE_DECISAO_NOVO.value:
+        st.write("""
+-  Divide os dados de forma que os subconjuntos sejam o mais "puros" possíveis;
+-  98,60% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram)
+-  92,89% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram)
+-  utiliza o um currículo mais atualizado como base para as matérias do curso;
+""")
+    case Modelos.REGRESSAO_LOGISTICA.value:
+        st.write("""
+-  Prevê a probabilidade de ocorrência de um evento específico;
+-  96,26% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
+-  93,58% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram);
+""")
+    case Modelos.RANDOM_FOREST.value:
+        st.write("""
+- Divide os dados de forma que os subconjuntos sejam o mais "puros" possíveis;
+-  97,66% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram)
+-  97,43% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram)
+""")
+    case _:
+        pass
 
 st.divider()
 
@@ -83,26 +148,22 @@ with st.container(border=True):
 if uploaded_file:
 
     with st.spinner("📊 Coletando os dados..."):
-        st.session_state.df = read_file_pdf(uploaded_file)
+        try:
+            st.session_state.df = read_file_pdf(uploaded_file)
 
-    st.subheader("✏️ Edite seus dados")
-    st.session_state.df = st.data_editor(
-        st.session_state.df,
-        num_rows="dynamic"
-    )
+            st.subheader("✏️ Edite seus dados")
+            st.session_state.df = st.data_editor(
+                st.session_state.df,
+                num_rows="dynamic"
+            )
 
-if st.button("📤 Enviar dados"):
-    try:
-        transformed_data, matriculas = transform_df(st.session_state.df)
-        prediction = predict_student(transformed_data)
+            button_enviar_dados()
 
-        modal_previsao(previsao=prediction)
-
-    except AttributeError:
-        st.markdown(
-            "<p style='color: red; font-size: 20px;'>"
-            "Selecione algum documento para ser enviado!"
-            "</p>",
-            unsafe_allow_html=True
-        )   
-
+        except EmtpyDocumentException:
+            st.markdown(
+                "<p style='color: red; font-size: 20px;'>"
+                "Não foram encontradas matérias no documento enviado."
+                "</p>",
+                unsafe_allow_html=True
+            ) 
+    
