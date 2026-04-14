@@ -7,13 +7,23 @@ from utils.select_modelos_enum import Modelos
 def load_decision_tree(model: str):
     match (model):
         case Modelos.ARVORE_DECISAO_ANTIGO.value:
-            return joblib.load('utils/modelo_decision_tree.joblib')
+            return joblib.load('utils/modelos/velho/modelo_decision_tree.joblib')
+        case Modelos.ARVORE_DECISAO_MEIO.value:
+            return joblib.load('utils/modelos/medio/modelo_decision_tree.joblib')
         case Modelos.ARVORE_DECISAO_NOVO.value:
-            return joblib.load('utils/modelo_disciplinas_atuais_decision_tree.joblib')
-        case Modelos.REGRESSAO_LOGISTICA.value:
-            return joblib.load('utils/modelo_logistic_regression.joblib')
-        case Modelos.RANDOM_FOREST.value:
-            return joblib.load('utils/modelo_random_forest.joblib')
+            return joblib.load('utils/modelos/novo/modelo_decision_tree.joblib')
+        case Modelos.REGRESSAO_LOGISTICA_ANTIGO.value:
+            return joblib.load('utils/modelos/velho/modelo_logistic_regression.joblib')
+        case Modelos.REGRESSAO_LOGISTICA_MEIO.value:
+            return joblib.load('utils/modelos/medio/modelo_logistic_regression.joblib')
+        case Modelos.REGRESSAO_LOGISTICA_NOVO.value:
+            return joblib.load('utils/modelos/novo/modelo_logistic_regression.joblib')
+        case Modelos.RANDOM_FOREST_ANTIGO.value:
+            return joblib.load('utils/modelos/velho/modelo_random_forest.joblib')
+        case Modelos.RANDOM_FOREST_MEIO.value:
+            return joblib.load('utils/modelos/medio/modelo_random_forest.joblib')
+        case Modelos.RANDOM_FOREST_NOVO.value:
+            return joblib.load('utils/modelos/novo/modelo_random_forest.joblib')
         case _:
             raise InvalidModelException
 

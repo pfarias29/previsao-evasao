@@ -101,37 +101,70 @@ option = st.selectbox(
     "Selecione o modelo que deseja utilizar",
     ("Selecione uma opção",
      Modelos.ARVORE_DECISAO_ANTIGO.value,
+     Modelos.ARVORE_DECISAO_MEIO.value,
      Modelos.ARVORE_DECISAO_NOVO.value,
-     Modelos.REGRESSAO_LOGISTICA.value,
-     Modelos.RANDOM_FOREST.value)
+     Modelos.REGRESSAO_LOGISTICA_ANTIGO.value,
+     Modelos.REGRESSAO_LOGISTICA_MEIO.value,
+     Modelos.REGRESSAO_LOGISTICA_NOVO.value,
+     Modelos.RANDOM_FOREST_ANTIGO.value,
+     Modelos.RANDOM_FOREST_MEIO.value,
+     Modelos.RANDOM_FOREST_NOVO.value)
 )
 
 match option:
     case Modelos.ARVORE_DECISAO_ANTIGO.value:
         st.write("""
--  Divide os dados de forma que os subconjuntos sejam o mais "puros" possíveis;
--  98,60% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram)
--  92,89% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram)
--  utiliza o um currículo mais antigo como base para as matérias do curso;
+-  Utiliza o currículo de 2011.1 para a construção do modelo de random forest;
+-  95,71% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
+-  97,70% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
+""")
+    case Modelos.ARVORE_DECISAO_MEIO.value:
+        st.write("""
+-  Utiliza o currículo de 2016.1 para a construção do modelo de árvore de decisão;
+-  96,79% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
+-  96,08% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
 """)
     case Modelos.ARVORE_DECISAO_NOVO.value:
         st.write("""
--  Divide os dados de forma que os subconjuntos sejam o mais "puros" possíveis;
--  98,60% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram)
--  92,89% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram)
--  utiliza o um currículo mais atualizado como base para as matérias do curso;
+-  Utiliza o currículo de 2025.1 para a construção do modelo de árvore de decisão;
+-  98,60% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
+-  92,95% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
 """)
-    case Modelos.REGRESSAO_LOGISTICA.value:
+    case Modelos.REGRESSAO_LOGISTICA_ANTIGO.value:
         st.write("""
--  Prevê a probabilidade de ocorrência de um evento específico;
+-  Utiliza o currículo de 2011.1 para a construção do modelo de regressão logística;
+-  94,28% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
+-  95,40% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
+""")
+    case Modelos.REGRESSAO_LOGISTICA_MEIO.value:
+        st.write("""
+-  Utiliza o currículo de 2016.1 para a construção do modelo de regressão logística;
+-  94,95% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
+-  92,15% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
+""")
+    case Modelos.REGRESSAO_LOGISTICA_NOVO.value:
+        st.write("""
+-  Utiliza o currículo de 2025.1 para a construção do modelo de regressão logística;
 -  96,26% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
--  93,58% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram);
+-  93,58% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
 """)
-    case Modelos.RANDOM_FOREST.value:
+    case Modelos.RANDOM_FOREST_ANTIGO.value:
         st.write("""
-- Divide os dados de forma que os subconjuntos sejam o mais "puros" possíveis;
--  97,66% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram)
--  97,43% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram)
+-  Utiliza o currículo de 2011.1 para a construção do modelo de árvore de decisão;
+-  96,19% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
+-  98,85% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
+""")
+    case Modelos.RANDOM_FOREST_MEIO.value:
+        st.write("""
+-  Utiliza o currículo de 2016.1 para a construção do modelo de random forest;
+-  96,78% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
+-  92,89% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
+""")
+    case Modelos.RANDOM_FOREST_NOVO.value:
+        st.write("""
+-  Utiliza o currículo de 2025.1 para a construção do modelo de random forest;
+-  97,66% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
+-  97,43% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
 """)
     case _:
         pass
