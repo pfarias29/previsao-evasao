@@ -80,7 +80,7 @@ option = st.selectbox(
 match option:
     case Modelos.ARVORE_DECISAO_ANTIGO.value:
         st.write("""
--  Utiliza o currículo de 2011.1 para a construção do modelo de random forest;
+-  Utiliza o currículo de 2011.1 para a construção do modelo de árvore de decisão;
 -  95,71% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
 -  97,70% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
 """)
@@ -116,7 +116,7 @@ match option:
 """)
     case Modelos.RANDOM_FOREST_ANTIGO.value:
         st.write("""
--  Utiliza o currículo de 2011.1 para a construção do modelo de árvore de decisão;
+-  Utiliza o currículo de 2011.1 para a construção do modelo de random forest;
 -  96,19% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
 -  98,85% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
 """)
