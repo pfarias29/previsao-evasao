@@ -194,6 +194,43 @@ if uploaded_files_pdf:
         num_rows="dynamic"
     )
     
+    if st.button("📤 Enviar dados"):
+
+        result = {}
+            
+        try:
+            transformed_data, matriculas = transform_df(st.session_state.df)
+                  
+            for index, row in transformed_data.iterrows():
+                    
+                result[matriculas[index]] = predict_student(row.to_frame().T, option)
+            
+            modal_previsao(result)
+        except AttributeError:
+            st.markdown(
+                "<p style='color: red; font-size: 20px;'>"
+                "Selecione algum documento para ser enviado!"
+                "</p>",
+                unsafe_allow_html=True
+            )   
+            
+        except InvalidModelException:
+            st.markdown(
+                "<p style='color: red; font-size: 20px;'>"
+                "Selecione algum modelo para ser utilizado!"
+                "</p>",
+                unsafe_allow_html=True
+            ) 
+
+        except EmtpyDocumentException:
+            st.markdown(
+                "<p style='color: red; font-size: 20px;'>"
+                "Não foram encontrados registros no documento enviado."
+                "</p>",
+                unsafe_allow_html=True
+            ) 
+
+    
 if uploaded_file_csv:
 
     with st.spinner("📊 Coletando os dados..."):
