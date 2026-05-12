@@ -20,7 +20,7 @@ def transform_df(df: pd.DataFrame):
 
     matriculas = df_transformed["matricula"]
 
-    colunas_materias = df_transformed.columns.difference(["matricula"])
+    colunas_materias = df_transformed.columns.difference(["matricula", "nome_aluno"])
     df_transformed[colunas_materias] = df_transformed[colunas_materias].replace(mencao_map)        
 
     return df_transformed.drop(columns=['matricula']), matriculas

@@ -12,8 +12,15 @@ def read_file_pdf(arq):
         for page in pdf.pages:
             text += page.extract_text() + "\n"
 
-    matricula_match = re.search(r"Matrícula:\s*(\d+)", text)
-    matricula = matricula_match.group(1) if matricula_match else None
+    nome = ""
+    matricula = ""
+
+    match = re.search(r"Nome:\s*([A-ZÀ-Ÿ\s]+)\s+Matrícula:\s*(\d+)", text)
+
+    if match:
+        nome = match.group(1).strip()
+        matricula = match.group(2)
+        
 
     linhas = text.splitlines()
     dados = []
@@ -33,6 +40,7 @@ def read_file_pdf(arq):
             m = p.search(linha)
             if m:
                 dados.append({
+                    "nome_aluno": nome,
                     "matricula": matricula,
                     "ano_periodo": m.groupdict().get("ano"),
                     "codigo": m.groupdict().get("codigo"),
