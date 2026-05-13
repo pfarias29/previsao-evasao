@@ -4,7 +4,7 @@ from utils.transform_df import transform_df
 from utils.decision_tree_model import predict_student
 from utils.select_modelos_enum import Modelos
 from utils.exceptions import InvalidModelException, EmtpyDocumentException
-
+from utils.grafico_mencoes import grafico_mencoes_agrupadas
 
 st.set_page_config(
     page_title="Área do Estudante",
@@ -72,6 +72,26 @@ def button_enviar_dados():
             prediction = predict_student(transformed_data, option)
 
             modal_previsao(previsao=prediction)
+
+            st.markdown(
+                    """
+                    <p style='font-size: 18px;'>
+                    O gráfico abaixo demonstra o desempenho do aluno ao longo do semestre a partir de uma média das menções obtidas. Para o cálculo, foi utilizada a seguinte correspondência de notas:
+                    </p>
+                    <ul>
+                        <li> SR: 0.0 </li>
+                        <li> II: 1.0 </li>
+                        <li> MI: 2.0 </li>
+                        <li> MM: 3.0 </li>
+                        <li> MS: 4.0 </li>
+                        <li> SS: 5.0 </li>
+                    </ul>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            for figura in grafico_mencoes_agrupadas(st.session_state.df):
+                st.pyplot(figura)
 
         except AttributeError:
             st.markdown(
