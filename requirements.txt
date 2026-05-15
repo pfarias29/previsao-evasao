@@ -2,3 +2,4 @@ streamlit
 pdfplumber
 joblib
 scikit-learn>=1.3
+matplotlib
