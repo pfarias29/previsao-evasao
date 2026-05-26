@@ -4,7 +4,7 @@ from utils.exceptions import InvalidModelException
 
 from utils.select_modelos_enum import Modelos
 
-def load_decision_tree(model: str):
+def load_model(model: str):
     match (model):
         case Modelos.ARVORE_DECISAO_ANTIGO.value:
             return joblib.load('utils/modelos/velho/modelo_decision_tree.joblib')
@@ -30,7 +30,7 @@ def load_decision_tree(model: str):
 
 def predict_student(student: pd.DataFrame, model: str):
 
-    clf = load_decision_tree(model)
+    clf = load_model(model)
     model = clf["model"]
     columns = clf["columns"]
 
@@ -48,7 +48,7 @@ def predict_student(student: pd.DataFrame, model: str):
     print(r[prediction[0]])
     print(f'{probability[prediction[0]] * 100}% de chance de {r[prediction[0]]}')
 
-    return prediction[0]
+    return prediction[0], probability[prediction[0]]
 
 
 

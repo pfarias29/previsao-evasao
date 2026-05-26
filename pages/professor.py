@@ -19,7 +19,7 @@ st.page_link("app.py", label="⬅ Voltar")
 def modal_previsao(previsao_dicionario: dict):
 
     total_alunos = len(previsao_dicionario)
-    evasao = sum(list(previsao_dicionario.values()))
+    evasao = sum(x[0] for x in list(previsao_dicionario.values()))
     formacao = total_alunos - evasao
 
     with st.container(border=True):
@@ -38,7 +38,10 @@ def modal_previsao(previsao_dicionario: dict):
     df = pd.DataFrame(columns=["Matrícula", "Previsão"])
 
     for key, value in previsao_dicionario.items():
-        new_row = pd.DataFrame([{"Matrícula": key, "Previsão": "⚠️ Risco de evasão" if value else "✅ Chance de formação"}])
+        prediction = value[0]
+        probability = value[1]
+
+        new_row = pd.DataFrame([{"Matrícula": key, "Previsão": f"⚠️ {probability * 100:.2f} de risco de evasão" if prediction else f"✅ {probability * 100:.2f} de chance de formação"}])
 
         df = pd.concat([df, new_row], ignore_index=True)
 

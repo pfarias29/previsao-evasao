@@ -15,7 +15,7 @@ st.set_page_config(
 st.page_link("app.py", label="⬅ Voltar")
 
 @st.dialog("Previsão")
-def modal_previsao(previsao):
+def modal_previsao(previsao, probability):
     with st.container(border=True):
         st.markdown(
             "<h3 style='text-align: center;'>🎓 Análise do Histórico Acadêmico</h3>",
@@ -37,22 +37,18 @@ def modal_previsao(previsao):
         with col2:
             if previsao:
                 st.markdown(
-                    """
-                    <p style='font-size: 18px;'>
-                    Com base no histórico informado, o estudante apresenta
-                    <b style='color:#e74c3c;'>maior risco de evasão</b>.
-                    </p>
-                    """,
+                    "<p style='font-size: 18px;'>"
+                    "Com base no histórico informado, o estudante apresenta"
+                    f"<b style='color:#e74c3c;'> {probability * 100:.2f} de risco de evasão</b>."
+                    "</p>",
                     unsafe_allow_html=True
                 )
             else:
                 st.markdown(
-                    """
-                    <p style='font-size: 18px;'>
-                    Com base no histórico informado, o estudante apresenta
-                    <b style='color:#2ecc71;'>maior chance de formação</b>.
-                    </p>
-                    """,
+                    "<p style='font-size: 18px;'>"
+                    "Com base no histórico informado, o estudante apresenta"
+                    f"<b style='color:#2ecc71;'> {probability * 100:.2f} de chance de formação</b>."
+                    "</p>",
                     unsafe_allow_html=True
                 )
 
@@ -69,9 +65,9 @@ def button_enviar_dados():
     if st.button("📤 Enviar dados"):
         try:
             transformed_data, matriculas = transform_df(st.session_state.df)
-            prediction = predict_student(transformed_data, option)
+            prediction, probability = predict_student(transformed_data, option)
 
-            modal_previsao(previsao=prediction)
+            modal_previsao(previsao=prediction, probability=probability)
 
             st.markdown(
                     """
