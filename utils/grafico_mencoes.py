@@ -6,15 +6,19 @@ from .transform_df import mencao_map
 
 def grafico_mencoes_agrupadas(df: pd.DataFrame):
 
+    ## DF gráfico média menções por semestre
     df_notas_mapeadas = df
-
     df_notas_mapeadas["valor_nota"] = df["nota"].map(mencao_map)
-
     df_medias = (df_notas_mapeadas.groupby(["nome_aluno", "ano_periodo"])["valor_nota"].mean().reset_index())
 
-    figuras = []
+
+    resultado = {}
 
     for nome, dados_aluno in df_medias.groupby("nome_aluno"):
+
+        graficos = []
+
+        ## Gráfico média de menções por semestre
 
         fig, ax = plt.subplots(figsize=(8, 4))
 
@@ -24,10 +28,73 @@ def grafico_mencoes_agrupadas(df: pd.DataFrame):
             marker="o"
         )
 
-        ax.set_title(f"{nome}")
+        ax.set_title("Média de menções por semestre")
         ax.set_xlabel("Semestre")
         ax.set_ylabel("Média")
 
-        figuras.append(fig)
+        graficos.append(fig)
 
-    return figuras
+        ## Gráfico quantidade de menções
+
+        ## DF histograma de menções
+        dados_aluno = df[df["nome_aluno"] == nome]
+        
+        contagem = (
+            dados_aluno["nota"]
+            .value_counts()
+            .reindex(["SR", "II", "MI", "MM", "MS", "SS"], fill_value=0)
+        )
+
+        fig_hist, ax_hist = plt.subplots(figsize=(8, 4))
+
+        ax_hist.bar(
+            contagem.index,
+            contagem.values
+        )
+
+        ax_hist.set_title("Distribuição das Menções")
+        ax_hist.set_xlabel("Menção")
+        ax_hist.set_ylabel("Quantidade")
+
+        graficos.append(fig_hist)
+
+        
+        ## Gráfico de taxa de aprovação por semestre
+
+        ## DF taxa de aprovação
+        dados_aluno = df[df["nome_aluno"] == nome]
+
+        taxa_semestre = (
+            dados_aluno
+            .assign(
+                aprovado=lambda x:
+                x["nota"].isin(["MM", "MS", "SS"])
+            )
+            .groupby("ano_periodo")["aprovado"]
+            .mean()
+            .mul(100)
+            .reset_index()
+        )
+
+        fig_taxa, ax_taxa = plt.subplots(figsize=(8,4))
+
+        ax_taxa.plot(
+            taxa_semestre["ano_periodo"],
+            taxa_semestre["aprovado"],
+            marker="o"
+        )
+
+        ax_taxa.set_ylim(0, 100)
+
+        ax_taxa.set_title(
+            "Taxa de Aprovação por Semestre"
+        )
+
+        ax_taxa.set_ylabel("% de Aprovação")
+
+        graficos.append(fig_taxa)
+
+
+        resultado[nome] = graficos
+
+    return resultado

@@ -15,6 +15,24 @@ st.set_page_config(
 
 st.page_link("app.py", label="⬅ Voltar")
 
+if "analise_realizada" not in st.session_state:
+    st.session_state.analise_realizada = False
+
+if "graficos" not in st.session_state:
+    st.session_state.graficos = None
+
+if "resultado_previsao" not in st.session_state:
+    st.session_state.resultado_previsao = None
+
+if "indice_grafico" not in st.session_state:
+    st.session_state.indice_grafico = 0
+
+if "ultimo_aluno" not in st.session_state:
+    st.session_state.ultimo_aluno = None
+
+if "mostrar_modal" not in st.session_state:
+    st.session_state.mostrar_modal = False
+
 @st.dialog("Previsão")
 def modal_previsao(previsao_dicionario: dict):
 
@@ -57,6 +75,86 @@ def modal_previsao(previsao_dicionario: dict):
         "</p>",
         unsafe_allow_html=True
     )
+
+
+def carrossel_graficos():
+
+    graficos = st.session_state.graficos
+
+    if graficos is None:
+        return
+
+    st.markdown(
+        """
+        <p style='font-size: 18px;'>
+        O primeiro gráfico abaixo demonstra o desempenho do aluno ao longo do semestre
+        a partir de uma média das menções obtidas.
+        </p>
+        """,
+        unsafe_allow_html=True
+    )
+
+    alunos = list(graficos.keys())
+
+    aluno_selecionado = st.selectbox(
+        "Selecione o aluno",
+        alunos
+    )
+
+    graficos_aluno = graficos[aluno_selecionado]
+
+    if st.session_state.ultimo_aluno != aluno_selecionado:
+        st.session_state.indice_grafico = 0
+        st.session_state.ultimo_aluno = aluno_selecionado
+
+    col1, col2, col3 = st.columns([1, 6, 1])
+
+    with col1:
+        if st.button("⬅️", key="anterior"):
+            st.session_state.indice_grafico = (
+                st.session_state.indice_grafico - 1
+            ) % len(graficos_aluno)
+
+    with col3:
+        if st.button("➡️", key="proximo"):
+            st.session_state.indice_grafico = (
+                st.session_state.indice_grafico + 1
+            ) % len(graficos_aluno)
+
+    indice = st.session_state.indice_grafico
+
+    st.write(
+        f"Gráfico {indice + 1} de {len(graficos_aluno)}"
+    )
+
+    st.pyplot(
+        graficos_aluno[indice]
+    )
+
+def executar_analise():
+
+    result = {}
+
+    transformed_data, matriculas = transform_df(
+        st.session_state.df
+    )
+
+    for index, row in transformed_data.iterrows():
+
+        result[matriculas[index]] = predict_student(
+            row.to_frame().T,
+            option
+        )
+
+    st.session_state.resultado_previsao = result
+
+    st.session_state.graficos = grafico_mencoes_agrupadas(
+        st.session_state.df
+    )
+
+    st.session_state.analise_realizada = True
+    st.session_state.mostrar_modal = True
+
 
 st.title("👨‍🏫 Área do Professor")
 
@@ -163,7 +261,7 @@ with col2:
         )   
         st.download_button(
             label="Baixar template",
-            data="matricula,ano_periodo,codigo,nome,carga_horaria,turma,frequencia,nota,situacao",
+            data="nome_aluno,matricula,ano_periodo,codigo,nome,carga_horaria,turma,frequencia,nota,situacao",
             file_name="template_alunos.csv",
             icon=":material/download:"
         )
@@ -197,40 +295,12 @@ if uploaded_files_pdf:
         num_rows="dynamic"
     )
     
-    if st.button("📤 Enviar dados"):
+    if st.button("📤 Enviar dados", key="enviar_pdf"):
 
         result = {}
             
         try:
-            transformed_data, matriculas = transform_df(st.session_state.df)
-                  
-            for index, row in transformed_data.iterrows():
-                    
-                result[matriculas[index]] = predict_student(row.to_frame().T, option)
-            
-            modal_previsao(result)
-
-            
-            st.markdown(
-                    """
-                    <p style='font-size: 18px;'>
-                    O(s) gráfico(s) abaixo demonstra(m) o desempenho do(s) aluno(s) ao longo do semestre a partir de uma média das menções obtidas. Para o cálculo, foi utilizada a seguinte correspondência de notas:
-                    </p>
-                    <ul>
-                        <li> SR: 0.0 </li>
-                        <li> II: 1.0 </li>
-                        <li> MI: 2.0 </li>
-                        <li> MM: 3.0 </li>
-                        <li> MS: 4.0 </li>
-                        <li> SS: 5.0 </li>
-                    </ul>
-                    """,
-                    unsafe_allow_html=True
-                )
-
-            for figura in grafico_mencoes_agrupadas(st.session_state.df):
-                st.pyplot(figura)
-
+            executar_analise()
 
         except AttributeError:
             st.markdown(
@@ -271,18 +341,11 @@ if uploaded_file_csv:
                 num_rows="dynamic"
             )
 
-            if st.button("📤 Enviar dados"):
-
-              result = {}
+            if st.button("📤 Enviar dados", key="enviar_csv"):
             
               try:
-                  transformed_data, matriculas = transform_df(st.session_state.df)
-                  
-                  for index, row in transformed_data.iterrows():
-                    
-                      result[matriculas[index]] = predict_student(row.to_frame().T, option)
-            
-                  modal_previsao(result)
+                  executar_analise()
+
               except AttributeError:
                   st.markdown(
                       "<p style='color: red; font-size: 20px;'>"
@@ -306,3 +369,12 @@ if uploaded_file_csv:
                 unsafe_allow_html=True
             ) 
 
+if st.session_state.mostrar_modal:
+
+    modal_previsao(
+        st.session_state.resultado_previsao
+    )
+    st.session_state.mostrar_modal = False
+    
+if st.session_state.analise_realizada:
+    carrossel_graficos()

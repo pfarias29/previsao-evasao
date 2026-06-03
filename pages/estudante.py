@@ -67,28 +67,8 @@ def button_enviar_dados():
             transformed_data, matriculas = transform_df(st.session_state.df)
             prediction, probability = predict_student(transformed_data, option)
 
-            modal_previsao(previsao=prediction, probability=probability)
-
-            st.markdown(
-                    """
-                    <p style='font-size: 18px;'>
-                    O gráfico abaixo demonstra o desempenho do aluno ao longo do semestre a partir de uma média das menções obtidas. Para o cálculo, foi utilizada a seguinte correspondência de notas:
-                    </p>
-                    <ul>
-                        <li> SR: 0.0 </li>
-                        <li> II: 1.0 </li>
-                        <li> MI: 2.0 </li>
-                        <li> MM: 3.0 </li>
-                        <li> MS: 4.0 </li>
-                        <li> SS: 5.0 </li>
-                    </ul>
-                    """,
-                    unsafe_allow_html=True
-                )
-
-            for figura in grafico_mencoes_agrupadas(st.session_state.df):
-                st.pyplot(figura)
-
+            modal_previsao(previsao=prediction, probability=probability)        
+        
         except AttributeError:
             st.markdown(
                 "<p style='color: red; font-size: 20px;'>"
@@ -103,6 +83,67 @@ def button_enviar_dados():
                 "</p>",
                 unsafe_allow_html=True
             ) 
+
+def carrossel_graficos():
+    st.markdown(
+        """
+        <p style='font-size: 18px;'>
+        O primeiro gráfico abaixo demonstra o desempenho do aluno ao longo do semestre a partir de uma média das menções obtidas. Para o cálculo, foi utilizada a seguinte correspondência de notas:
+        </p>
+        <ul>
+            <li> SR: 0.0 </li>
+            <li> II: 1.0 </li>
+            <li> MI: 2.0 </li>
+            <li> MM: 3.0 </li>
+            <li> MS: 4.0 </li>
+            <li> SS: 5.0 </li>
+        </ul>
+        """,
+        unsafe_allow_html=True
+    )
+            
+    graficos = grafico_mencoes_agrupadas(st.session_state.df)
+
+    alunos = list(graficos.keys())
+
+    aluno_selecionado = st.selectbox(
+        "Selecione o aluno",
+        alunos
+    )
+
+    if "indice_grafico" not in st.session_state:
+        st.session_state.indice_grafico = 0
+
+    graficos = graficos[aluno_selecionado]
+
+    if "ultimo_aluno" not in st.session_state:
+        st.session_state.ultimo_aluno = aluno_selecionado
+
+    if st.session_state.ultimo_aluno != aluno_selecionado:
+        st.session_state.indice_grafico = 0
+        st.session_state.ultimo_aluno = aluno_selecionado
+
+    col1, col2, col3 = st.columns([1, 6, 1])
+
+    with col1:
+        if st.button("⬅️", key="anterior"):
+            st.session_state.indice_grafico = (
+            st.session_state.indice_grafico - 1
+            ) % len(graficos)
+
+    with col3:
+        if st.button("➡️", key="proximo"):
+            st.session_state.indice_grafico = (
+            st.session_state.indice_grafico + 1
+            ) % len(graficos)
+
+    indice = st.session_state.indice_grafico
+
+    st.write(
+        f"Gráfico {indice + 1} de {len(graficos)}"
+    )
+
+    st.pyplot(graficos[indice])
 
 st.title("👨‍🎓 Área do Estudante")
 
@@ -207,6 +248,9 @@ if uploaded_file:
             )
 
             button_enviar_dados()
+
+            carrossel_graficos()
+            
 
         except EmtpyDocumentException:
             st.markdown(
