@@ -103,6 +103,7 @@ def carrossel_graficos():
     )
             
     graficos = grafico_mencoes_agrupadas(st.session_state.df)
+    print(graficos)
 
     alunos = list(graficos.keys())
 
