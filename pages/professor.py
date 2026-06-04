@@ -87,9 +87,16 @@ def carrossel_graficos():
     st.markdown(
         """
         <p style='font-size: 18px;'>
-        O primeiro gráfico abaixo demonstra o desempenho do aluno ao longo do semestre
-        a partir de uma média das menções obtidas.
+        O primeiro gráfico abaixo demonstra o desempenho do aluno ao longo do semestre a partir de uma média das menções obtidas. Para o cálculo, foi utilizada a seguinte correspondência de notas:
         </p>
+        <ul>
+            <li> SR: 0.0 </li>
+            <li> II: 1.0 </li>
+            <li> MI: 2.0 </li>
+            <li> MM: 3.0 </li>
+            <li> MS: 4.0 </li>
+            <li> SS: 5.0 </li>
+        </ul>
         """,
         unsafe_allow_html=True
     )
