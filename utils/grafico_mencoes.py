@@ -4,12 +4,21 @@ import streamlit as st
 from .transform_df import mencao_map
 
 
-def grafico_mencoes_agrupadas(df: pd.DataFrame):
+def grafico_mencoes_agrupadas(df: pd.DataFrame, is_professor=False):
 
     ## DF gráfico média menções por semestre
     df_notas_mapeadas = df
     df_notas_mapeadas["valor_nota"] = df["nota"].map(mencao_map)
     df_medias = (df_notas_mapeadas.groupby(["nome_aluno", "ano_periodo"])["valor_nota"].mean().reset_index())
+
+    df_media_geral = (
+        df_medias
+        .groupby("ano_periodo")["valor_nota"]
+        .mean()
+        .reset_index()
+    )
+
+    todos_semestres = sorted(df_medias["ano_periodo"].unique())
 
 
     resultado = {}
@@ -18,19 +27,68 @@ def grafico_mencoes_agrupadas(df: pd.DataFrame):
 
         graficos = []
 
-        ## Gráfico média de menções por semestre
+        if is_professor:
+            dados_plot = pd.DataFrame({
+            "ano_periodo": todos_semestres
+            })
 
-        fig, ax = plt.subplots(figsize=(8, 4))
+            dados_plot = (
+                dados_plot
+                .merge(
+                    dados_aluno[["ano_periodo", "valor_nota"]],
+                    on="ano_periodo",
+                    how="left"
+                )
+                .merge(
+                    df_media_geral,
+                    on="ano_periodo",
+                    how="left",
+                    suffixes=("_aluno", "_geral")
+                )
+            )
 
-        ax.plot(
-            dados_aluno["ano_periodo"],
-            dados_aluno["valor_nota"],
-            marker="o"
-        )
+            fig, ax = plt.subplots(figsize=(8,4))
 
-        ax.set_title("Média de menções por semestre")
-        ax.set_xlabel("Semestre")
-        ax.set_ylabel("Média")
+            x = range(len(todos_semestres))
+
+            ax.plot(
+                x,
+                dados_plot["valor_nota_aluno"],
+                marker="o",
+                label="Aluno"
+            )
+
+            ax.plot(
+                x,
+                dados_plot["valor_nota_geral"],
+                marker="s",
+                linestyle="--",
+                label="Média Geral"
+            )
+
+            ax.set_xticks(x)
+            ax.set_xticklabels(todos_semestres, rotation=45)
+
+            ax.legend()
+
+        else:
+            fig, ax = plt.subplots(figsize=(8, 4))
+
+            # Média do aluno
+            ax.plot(
+                dados_aluno["ano_periodo"],
+                dados_aluno["valor_nota"],
+                marker="o",
+                linewidth=2,
+                label="Aluno"
+            )
+
+            ax.set_title("Média de Menções por Semestre")
+            ax.set_xlabel("Semestre")
+            ax.set_ylabel("Média")
+
+            ax.legend()
+            ax.grid(True, alpha=0.3)
 
         graficos.append(fig)
 

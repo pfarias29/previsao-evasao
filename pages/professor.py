@@ -149,7 +149,8 @@ def executar_analise():
     st.session_state.resultado_previsao = result
 
     st.session_state.graficos = grafico_mencoes_agrupadas(
-        st.session_state.df
+        st.session_state.df,
+        True
     )
 
     st.session_state.analise_realizada = True
