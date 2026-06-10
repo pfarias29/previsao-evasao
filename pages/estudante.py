@@ -1,9 +1,10 @@
 import streamlit as st
+import pandas as pd
 from utils.read_file import read_file_pdf
 from utils.transform_df import transform_df
-from utils.decision_tree_model import predict_student
-from utils.select_modelos_enum import Modelos
-from utils.exceptions import InvalidModelException, EmtpyDocumentException
+from utils.predict_student import predict_student_all_models
+from utils.modelos import Modelos
+from utils.exceptions import EmtpyDocumentException
 from utils.grafico_mencoes import grafico_mencoes_agrupadas
 
 st.set_page_config(
@@ -14,72 +15,56 @@ st.set_page_config(
 
 st.page_link("app.py", label="⬅ Voltar")
 
-@st.dialog("Previsão")
-def modal_previsao(previsao, probability):
-    with st.container(border=True):
-        st.markdown(
-            "<h3 style='text-align: center;'>🎓 Análise do Histórico Acadêmico</h3>",
-            unsafe_allow_html=True
+def exibir_previsoes_estudante(resultados):
+
+    linhas = []
+
+    probabilidades = []
+
+    for nome_modelo, dados in resultados.items():
+
+        probabilidade = float(
+            dados["probability"]
         )
 
-        st.divider()
+        probabilidades.append(probabilidade)
 
-        col1, col2 = st.columns([1, 3])
+        linhas.append({
+            "Modelo": nome_modelo,
+            "Risco de evasão": f"{probabilidade * 100:.2f}%"
+        })
 
-        with col1:
-            st.markdown(
-                "<p style='font-size: 40px; text-align: center;'>"
-                f"{'⚠️' if previsao else '✅'}"
-                "</p>",
-                unsafe_allow_html=True
-            )
+    df = pd.DataFrame(linhas)
 
-        with col2:
-            if previsao:
-                st.markdown(
-                    "<p style='font-size: 18px;'>"
-                    "Com base no histórico informado, o estudante apresenta"
-                    f"<b style='color:#e74c3c;'> {probability * 100:.2f} de risco de evasão</b>."
-                    "</p>",
-                    unsafe_allow_html=True
-                )
-            else:
-                st.markdown(
-                    "<p style='font-size: 18px;'>"
-                    "Com base no histórico informado, o estudante apresenta"
-                    f"<b style='color:#2ecc71;'> {probability * 100:.2f} de chance de formação</b>."
-                    "</p>",
-                    unsafe_allow_html=True
-                )
+    st.subheader("📊 Risco de Evasão")
 
-        st.divider()
+    st.dataframe(
+        df,
+        use_container_width=True,
+        hide_index=True
+    )
 
-        st.markdown(
-            "<p style='text-align: center; font-size: 14px; color: gray;'>"
-            "⚠️ Esta previsão é baseada em modelos estatísticos e não representa uma decisão final."
-            "</p>",
-            unsafe_allow_html=True
-        )
+    risco_medio = (
+        sum(probabilidades)
+        / len(probabilidades)
+    )
+
+    st.metric(
+        "Risco Médio de Evasão",
+        f"{risco_medio*100:.2f}%"
+    )
 
 def button_enviar_dados():
     if st.button("📤 Enviar dados"):
         try:
             transformed_data, matriculas = transform_df(st.session_state.df)
-            prediction, probability = predict_student(transformed_data, option)
-
-            modal_previsao(previsao=prediction, probability=probability)        
+            resultados = predict_student_all_models(transformed_data)
+            exibir_previsoes_estudante(resultados)        
         
         except AttributeError:
             st.markdown(
                 "<p style='color: red; font-size: 20px;'>"
                 "Selecione algum documento para ser enviado!"
-                "</p>",
-                unsafe_allow_html=True
-            ) 
-        except InvalidModelException:
-            st.markdown(
-                "<p style='color: red; font-size: 20px;'>"
-                "Selecione algum modelo para ser utilizado!"
                 "</p>",
                 unsafe_allow_html=True
             ) 
@@ -154,77 +139,6 @@ st.markdown("""
 - Obter uma **previsão de evasão**
 """)
 
-option = st.selectbox(
-    "Selecione o modelo que deseja utilizar",
-    ("Selecione uma opção",
-     Modelos.ARVORE_DECISAO_ANTIGO.value,
-     Modelos.ARVORE_DECISAO_MEIO.value,
-     Modelos.ARVORE_DECISAO_NOVO.value,
-     Modelos.REGRESSAO_LOGISTICA_ANTIGO.value,
-     Modelos.REGRESSAO_LOGISTICA_MEIO.value,
-     Modelos.REGRESSAO_LOGISTICA_NOVO.value,
-     Modelos.RANDOM_FOREST_ANTIGO.value,
-     Modelos.RANDOM_FOREST_MEIO.value,
-     Modelos.RANDOM_FOREST_NOVO.value)
-)
-
-match option:
-    case Modelos.ARVORE_DECISAO_ANTIGO.value:
-        st.write("""
--  Utiliza o currículo de 2011.1 para a construção do modelo de árvore de decisão;
--  95,71% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
--  97,70% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
-""")
-    case Modelos.ARVORE_DECISAO_MEIO.value:
-        st.write("""
--  Utiliza o currículo de 2016.1 para a construção do modelo de árvore de decisão;
--  96,79% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
--  96,08% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
-""")
-    case Modelos.ARVORE_DECISAO_NOVO.value:
-        st.write("""
--  Utiliza o currículo de 2025.1 para a construção do modelo de árvore de decisão;
--  98,60% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
--  92,95% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
-""")
-    case Modelos.REGRESSAO_LOGISTICA_ANTIGO.value:
-        st.write("""
--  Utiliza o currículo de 2011.1 para a construção do modelo de regressão logística;
--  94,28% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
--  95,40% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
-""")
-    case Modelos.REGRESSAO_LOGISTICA_MEIO.value:
-        st.write("""
--  Utiliza o currículo de 2016.1 para a construção do modelo de regressão logística;
--  94,95% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
--  92,15% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
-""")
-    case Modelos.REGRESSAO_LOGISTICA_NOVO.value:
-        st.write("""
--  Utiliza o currículo de 2025.1 para a construção do modelo de regressão logística;
--  96,26% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
--  93,58% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
-""")
-    case Modelos.RANDOM_FOREST_ANTIGO.value:
-        st.write("""
--  Utiliza o currículo de 2011.1 para a construção do modelo de random forest;
--  96,19% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
--  98,85% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
-""")
-    case Modelos.RANDOM_FOREST_MEIO.value:
-        st.write("""
--  Utiliza o currículo de 2016.1 para a construção do modelo de random forest;
--  96,78% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
--  92,89% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
-""")
-    case Modelos.RANDOM_FOREST_NOVO.value:
-        st.write("""
--  Utiliza o currículo de 2025.1 para a construção do modelo de random forest;
--  97,66% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
--  97,43% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
-""")
-    case _:
-        pass
 
 st.divider()
 

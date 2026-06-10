@@ -2,9 +2,8 @@ import streamlit as st
 import pandas as pd
 from utils.read_file import read_file_pdf, read_file_csv
 from utils.transform_df import transform_df
-from utils.decision_tree_model import predict_student
-from utils.select_modelos_enum import Modelos
-from utils.exceptions import EmtpyDocumentException, InvalidModelException
+from utils.predict_student import predict_student_all_models
+from utils.exceptions import EmtpyDocumentException
 from utils.grafico_mencoes import grafico_mencoes_agrupadas
 
 st.set_page_config(
@@ -30,52 +29,43 @@ if "indice_grafico" not in st.session_state:
 if "ultimo_aluno" not in st.session_state:
     st.session_state.ultimo_aluno = None
 
-if "mostrar_modal" not in st.session_state:
-    st.session_state.mostrar_modal = False
+def exibir_previsoes(previsao_dicionario):
 
-@st.dialog("Previsão")
-def modal_previsao(previsao_dicionario: dict):
+    linhas = []
 
-    total_alunos = len(previsao_dicionario)
-    evasao = sum(x[0] for x in list(previsao_dicionario.values()))
-    formacao = total_alunos - evasao
+    for matricula, modelos in previsao_dicionario.items():
 
-    with st.container(border=True):
-        st.markdown(
-            "<h3 style='text-align:center;'>📌 Resumo Geral</h3>",
-            unsafe_allow_html=True
+        linha = {
+            "Matrícula": matricula
+        }
+
+        probabilidades = []
+
+        for nome_modelo, dados in modelos.items():
+
+            probabilidade = float(
+                dados["probability"]
+            )
+
+            linha[nome_modelo] = f"{probabilidade * 100:.2f}%"
+
+            probabilidades.append(probabilidade)
+
+        linha["Risco Médio"] = (
+            f"{sum(probabilidades)/len(probabilidades)*100:.2f}%"
         )
 
-        c1, c2, c3 = st.columns(3)
-        c1.metric("👥 Total", total_alunos)
-        c2.metric("⚠️ Evasão", evasao)
-        c3.metric("✅ Formação", formacao)
-    
-    st.divider()
+        linhas.append(linha)   # <- faltava isso
 
-    df = pd.DataFrame(columns=["Matrícula", "Previsão"])
+    df = pd.DataFrame(linhas)
 
-    for key, value in previsao_dicionario.items():
-        prediction = value[0]
-        probability = value[1]
-
-        new_row = pd.DataFrame([{"Matrícula": key, "Previsão": f"⚠️ {probability * 100:.2f} de risco de evasão" if prediction else f"✅ {probability * 100:.2f} de chance de formação"}])
-
-        df = pd.concat([df, new_row], ignore_index=True)
+    st.subheader("📊 Risco de Evasão")
 
     st.dataframe(
-        df[["Matrícula", "Previsão"]],
+        df,
         use_container_width=True,
         hide_index=True
     )
-
-    st.markdown(
-        "<p style='font-size:13px; color:gray; text-align:center;'>"
-        "⚠️ As previsões são baseadas em modelos estatísticos e não representam decisões finais."
-        "</p>",
-        unsafe_allow_html=True
-    )
-
 
 def carrossel_graficos():
 
@@ -148,9 +138,13 @@ def executar_analise():
 
     for index, row in transformed_data.iterrows():
 
-        result[matriculas[index]] = predict_student(
-            row.to_frame().T,
-            option
+        dados_aluno = row.to_frame().T
+
+
+        result[matriculas[index]] = (
+            predict_student_all_models(
+                dados_aluno
+            )
         )
 
     st.session_state.resultado_previsao = result
@@ -161,7 +155,6 @@ def executar_analise():
     )
 
     st.session_state.analise_realizada = True
-    st.session_state.mostrar_modal = True
 
 
 st.title("👨‍🏫 Área do Professor")
@@ -171,79 +164,6 @@ st.markdown("""
 - Enviar o histórico acadêmico de vários estudantes ou enviar um arquivo preenchido com as informações do histórico dos estudantes
 - Obter uma **previsão de evasão** por estudante
 """)
-
-option = st.selectbox(
-    "Selecione o modelo que deseja utilizar",
-    ("Selecione uma opção",
-     Modelos.ARVORE_DECISAO_ANTIGO.value,
-     Modelos.ARVORE_DECISAO_MEIO.value,
-     Modelos.ARVORE_DECISAO_NOVO.value,
-     Modelos.REGRESSAO_LOGISTICA_ANTIGO.value,
-     Modelos.REGRESSAO_LOGISTICA_MEIO.value,
-     Modelos.REGRESSAO_LOGISTICA_NOVO.value,
-     Modelos.RANDOM_FOREST_ANTIGO.value,
-     Modelos.RANDOM_FOREST_MEIO.value,
-     Modelos.RANDOM_FOREST_NOVO.value)
-)
-
-match option:
-    case Modelos.ARVORE_DECISAO_ANTIGO.value:
-        st.write("""
--  Utiliza o currículo de 2011.1 para a construção do modelo de árvore de decisão;
--  95,71% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
--  97,70% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
-""")
-    case Modelos.ARVORE_DECISAO_MEIO.value:
-        st.write("""
--  Utiliza o currículo de 2016.1 para a construção do modelo de árvore de decisão;
--  96,79% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
--  96,08% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
-""")
-    case Modelos.ARVORE_DECISAO_NOVO.value:
-        st.write("""
--  Utiliza o currículo de 2025.1 para a construção do modelo de árvore de decisão;
--  98,60% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
--  92,95% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
-""")
-    case Modelos.REGRESSAO_LOGISTICA_ANTIGO.value:
-        st.write("""
--  Utiliza o currículo de 2011.1 para a construção do modelo de regressão logística;
--  94,28% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
--  95,40% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
-""")
-    case Modelos.REGRESSAO_LOGISTICA_MEIO.value:
-        st.write("""
--  Utiliza o currículo de 2016.1 para a construção do modelo de regressão logística;
--  94,95% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
--  92,15% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
-""")
-    case Modelos.REGRESSAO_LOGISTICA_NOVO.value:
-        st.write("""
--  Utiliza o currículo de 2025.1 para a construção do modelo de regressão logística;
--  96,26% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
--  93,58% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
-""")
-    case Modelos.RANDOM_FOREST_ANTIGO.value:
-        st.write("""
--  Utiliza o currículo de 2011.1 para a construção do modelo de random forest;
--  96,19% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
--  98,85% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
-""")
-    case Modelos.RANDOM_FOREST_MEIO.value:
-        st.write("""
--  Utiliza o currículo de 2016.1 para a construção do modelo de random forest;
--  96,78% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
--  92,89% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
-""")
-    case Modelos.RANDOM_FOREST_NOVO.value:
-        st.write("""
--  Utiliza o currículo de 2025.1 para a construção do modelo de random forest;
--  97,66% de Verdadeiros Positivos (o modelo previu que os alunos evadiram e realmente evadiram);
--  97,43% de Verdadeiros Negativos (o modelo previu que os alunos não evadiram e realmente não evadiram).
-""")
-    case _:
-        pass
-
 
 st.divider()
 
@@ -316,15 +236,7 @@ if uploaded_files_pdf:
                 "Selecione algum documento para ser enviado!"
                 "</p>",
                 unsafe_allow_html=True
-            )   
-            
-        except InvalidModelException:
-            st.markdown(
-                "<p style='color: red; font-size: 20px;'>"
-                "Selecione algum modelo para ser utilizado!"
-                "</p>",
-                unsafe_allow_html=True
-            ) 
+            )    
 
         except EmtpyDocumentException:
             st.markdown(
@@ -361,13 +273,6 @@ if uploaded_file_csv:
                       "</p>",
                       unsafe_allow_html=True
                   )   
-              except InvalidModelException:
-                st.markdown(
-                    "<p style='color: red; font-size: 20px;'>"
-                    "Selecione algum modelo para ser utilizado!"
-                    "</p>",
-                    unsafe_allow_html=True
-                ) 
 
         except EmtpyDocumentException:
             st.markdown(
@@ -377,12 +282,11 @@ if uploaded_file_csv:
                 unsafe_allow_html=True
             ) 
 
-if st.session_state.mostrar_modal:
 
-    modal_previsao(
+if st.session_state.analise_realizada:
+
+    exibir_previsoes(
         st.session_state.resultado_previsao
     )
-    st.session_state.mostrar_modal = False
-    
-if st.session_state.analise_realizada:
+
     carrossel_graficos()

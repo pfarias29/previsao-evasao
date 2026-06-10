@@ -1,56 +1,50 @@
 import joblib
 import pandas as pd
-from utils.exceptions import InvalidModelException
 
-from utils.select_modelos_enum import Modelos
-
-def load_model(model: str):
-    match (model):
-        case Modelos.ARVORE_DECISAO_ANTIGO.value:
-            return joblib.load('utils/modelos/velho/modelo_decision_tree.joblib')
-        case Modelos.ARVORE_DECISAO_MEIO.value:
-            return joblib.load('utils/modelos/medio/modelo_decision_tree.joblib')
-        case Modelos.ARVORE_DECISAO_NOVO.value:
-            return joblib.load('utils/modelos/novo/modelo_decision_tree.joblib')
-        case Modelos.REGRESSAO_LOGISTICA_ANTIGO.value:
-            return joblib.load('utils/modelos/velho/modelo_logistic_regression.joblib')
-        case Modelos.REGRESSAO_LOGISTICA_MEIO.value:
-            return joblib.load('utils/modelos/medio/modelo_logistic_regression.joblib')
-        case Modelos.REGRESSAO_LOGISTICA_NOVO.value:
-            return joblib.load('utils/modelos/novo/modelo_logistic_regression.joblib')
-        case Modelos.RANDOM_FOREST_ANTIGO.value:
-            return joblib.load('utils/modelos/velho/modelo_random_forest.joblib')
-        case Modelos.RANDOM_FOREST_MEIO.value:
-            return joblib.load('utils/modelos/medio/modelo_random_forest.joblib')
-        case Modelos.RANDOM_FOREST_NOVO.value:
-            return joblib.load('utils/modelos/novo/modelo_random_forest.joblib')
-        case _:
-            raise InvalidModelException
+from utils.modelos import Modelos, NOMES_MODELOS
 
 
-def predict_student(student: pd.DataFrame, model: str):
+def load_model(model_path: str):
+    return joblib.load(model_path)
 
-    clf = load_model(model)
-    model = clf["model"]
-    columns = clf["columns"]
+def predict_student_all_models(student: pd.DataFrame):
 
-    student = transforma_colunas(student=student, codigos=columns) 
+    resultados = {}
 
-    student = student.reindex(
-        columns=columns,
-        fill_value=-1
-    )
+    for modelo in Modelos:
 
-    prediction = model.predict(student)
-    probability = model.predict_proba(student)[0]
-
-    r = ["Formou", "Evadiu"]
-    print(r[prediction[0]])
-    print(f'{probability[prediction[0]] * 100}% de chance de {r[prediction[0]]}')
-
-    return prediction[0], probability[prediction[0]]
+        nome_modelo = NOMES_MODELOS[modelo]
+        model_path = modelo.value
 
 
+        clf = load_model(model_path)
+
+        model = clf["model"]
+        columns = clf["columns"]
+
+        student_model = transforma_colunas(
+            student.copy(),
+            columns
+        )
+
+
+        student_model = student_model.reindex(
+            columns=columns,
+            fill_value=-1
+        )
+
+        prediction = model.predict(student_model)[0]
+            
+        probability = model.predict_proba(student_model)[0]
+
+        resultados[nome_modelo] = {
+            "prediction": prediction,
+            "probability": probability[1]
+        }
+
+    print(resultados)
+
+    return resultados
 
 DISCIPLINAS = {
     116301: ["CIC0088"],
