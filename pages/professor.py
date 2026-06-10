@@ -23,12 +23,6 @@ if "graficos" not in st.session_state:
 if "resultado_previsao" not in st.session_state:
     st.session_state.resultado_previsao = None
 
-if "indice_grafico" not in st.session_state:
-    st.session_state.indice_grafico = 0
-
-if "ultimo_aluno" not in st.session_state:
-    st.session_state.ultimo_aluno = None
-
 def exibir_previsoes(previsao_dicionario):
 
     linhas = []
@@ -67,7 +61,7 @@ def exibir_previsoes(previsao_dicionario):
         hide_index=True
     )
 
-def carrossel_graficos():
+def apresentar_graficos():
 
     graficos = st.session_state.graficos
 
@@ -91,42 +85,13 @@ def carrossel_graficos():
         unsafe_allow_html=True
     )
 
-    alunos = list(graficos.keys())
-
     aluno_selecionado = st.selectbox(
         "Selecione o aluno",
-        alunos
+        list(graficos.keys())
     )
 
-    graficos_aluno = graficos[aluno_selecionado]
-
-    if st.session_state.ultimo_aluno != aluno_selecionado:
-        st.session_state.indice_grafico = 0
-        st.session_state.ultimo_aluno = aluno_selecionado
-
-    col1, col2, col3 = st.columns([1, 6, 1])
-
-    with col1:
-        if st.button("⬅️", key="anterior"):
-            st.session_state.indice_grafico = (
-                st.session_state.indice_grafico - 1
-            ) % len(graficos_aluno)
-
-    with col3:
-        if st.button("➡️", key="proximo"):
-            st.session_state.indice_grafico = (
-                st.session_state.indice_grafico + 1
-            ) % len(graficos_aluno)
-
-    indice = st.session_state.indice_grafico
-
-    st.write(
-        f"Gráfico {indice + 1} de {len(graficos_aluno)}"
-    )
-
-    st.pyplot(
-        graficos_aluno[indice]
-    )
+    for grafico in graficos[aluno_selecionado]:
+        st.pyplot(grafico)
 
 def executar_analise():
 
@@ -200,12 +165,12 @@ with col2:
             type="csv"
         )
 
+if uploaded_files_pdf and "pdf_carregado" not in st.session_state:
 
-if uploaded_files_pdf:
+    with st.spinner("📊 Coletando dados..."):
 
-    st.session_state.df = pd.DataFrame()
+        st.session_state.df = pd.DataFrame()
 
-    with st.spinner("📊 Coletando os dados..."):
         for uploaded_file in uploaded_files_pdf:
             df_pdf = read_file_pdf(uploaded_file)
 
@@ -214,19 +179,17 @@ if uploaded_files_pdf:
                 ignore_index=True
             )
 
+        st.session_state.pdf_carregado = True
+
 
     st.divider()
-    st.subheader("✏️ Edite os dados")
-
-    st.session_state.df = st.data_editor(
-        st.session_state.df,
-        num_rows="dynamic"
-    )
     
-    if st.button("📤 Enviar dados", key="enviar_pdf"):
+if "df" in st.session_state:
 
-        result = {}
-            
+    st.subheader("✏️ Confira os dados e clique no botão abaixo")
+
+    if st.button("📤 Enviar dados para análise"):
+
         try:
             executar_analise()
 
@@ -237,7 +200,6 @@ if uploaded_files_pdf:
                 "</p>",
                 unsafe_allow_html=True
             )    
-
         except EmtpyDocumentException:
             st.markdown(
                 "<p style='color: red; font-size: 20px;'>"
@@ -246,22 +208,22 @@ if uploaded_files_pdf:
                 unsafe_allow_html=True
             ) 
 
+    st.session_state.df = st.data_editor(
+        st.session_state.df,
+        num_rows="dynamic"
+    )
+
     
 if uploaded_file_csv:
 
-    with st.spinner("📊 Coletando os dados..."):
+    with st.spinner("📊 Coletando dados..."):
         try:
             st.session_state.df = read_file_csv(uploaded_file_csv)
 
             st.divider()
-            st.subheader("✏️ Edite os dados")
 
-            st.session_state.df = st.data_editor(
-                st.session_state.df,
-                num_rows="dynamic"
-            )
-
-            if st.button("📤 Enviar dados", key="enviar_csv"):
+            st.subheader("✏️ Confira os dados e clique no botão abaixo")
+            if st.button("📤 Enviar dados para análise", key="enviar_csv"):
             
               try:
                   executar_analise()
@@ -273,6 +235,12 @@ if uploaded_file_csv:
                       "</p>",
                       unsafe_allow_html=True
                   )   
+                  
+
+            st.session_state.df = st.data_editor(
+                st.session_state.df,
+                num_rows="dynamic"
+            )
 
         except EmtpyDocumentException:
             st.markdown(
@@ -289,4 +257,4 @@ if st.session_state.analise_realizada:
         st.session_state.resultado_previsao
     )
 
-    carrossel_graficos()
+    apresentar_graficos()

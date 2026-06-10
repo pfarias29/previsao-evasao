@@ -55,11 +55,13 @@ def exibir_previsoes_estudante(resultados):
     )
 
 def button_enviar_dados():
-    if st.button("📤 Enviar dados"):
+    if st.button("📤 Enviar dados para análise"):
         try:
             transformed_data, matriculas = transform_df(st.session_state.df)
-            resultados = predict_student_all_models(transformed_data)
-            exibir_previsoes_estudante(resultados)        
+            st.session_state.resultados = (
+                predict_student_all_models(transformed_data)
+            )
+            st.session_state.mostrar_resultados = True
         
         except AttributeError:
             st.markdown(
@@ -68,8 +70,8 @@ def button_enviar_dados():
                 "</p>",
                 unsafe_allow_html=True
             ) 
-
-def carrossel_graficos():
+        
+def apresentar_graficos():
     st.markdown(
         """
         <p style='font-size: 18px;'>
@@ -89,46 +91,11 @@ def carrossel_graficos():
             
     graficos = grafico_mencoes_agrupadas(st.session_state.df)
 
-    alunos = list(graficos.keys())
+    for lista in graficos.values():
+        for grafico in lista:
+            st.pyplot(grafico)
 
-    aluno_selecionado = st.selectbox(
-        "Selecione o aluno",
-        alunos
-    )
 
-    if "indice_grafico" not in st.session_state:
-        st.session_state.indice_grafico = 0
-
-    graficos = graficos[aluno_selecionado]
-
-    if "ultimo_aluno" not in st.session_state:
-        st.session_state.ultimo_aluno = aluno_selecionado
-
-    if st.session_state.ultimo_aluno != aluno_selecionado:
-        st.session_state.indice_grafico = 0
-        st.session_state.ultimo_aluno = aluno_selecionado
-
-    col1, col2, col3 = st.columns([1, 6, 1])
-
-    with col1:
-        if st.button("⬅️", key="anterior"):
-            st.session_state.indice_grafico = (
-            st.session_state.indice_grafico - 1
-            ) % len(graficos)
-
-    with col3:
-        if st.button("➡️", key="proximo"):
-            st.session_state.indice_grafico = (
-            st.session_state.indice_grafico + 1
-            ) % len(graficos)
-
-    indice = st.session_state.indice_grafico
-
-    st.write(
-        f"Gráfico {indice + 1} de {len(graficos)}"
-    )
-
-    st.pyplot(graficos[indice])
 
 st.title("👨‍🎓 Área do Estudante")
 
@@ -155,15 +122,13 @@ if uploaded_file:
         try:
             st.session_state.df = read_file_pdf(uploaded_file)
 
-            st.subheader("✏️ Edite seus dados")
+            
+            st.subheader("✏️ Confira os dados e clique no botão abaixo")
+            button_enviar_dados()
             st.session_state.df = st.data_editor(
                 st.session_state.df,
                 num_rows="dynamic"
             )
-
-            button_enviar_dados()
-
-            carrossel_graficos()
             
 
         except EmtpyDocumentException:
@@ -173,4 +138,10 @@ if uploaded_file:
                 "</p>",
                 unsafe_allow_html=True
             ) 
+
+if st.session_state.get("mostrar_resultados", False):
+    exibir_previsoes_estudante(
+        st.session_state.resultados
+    )
+    apresentar_graficos()
     
