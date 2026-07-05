@@ -3,3 +3,5 @@ pdfplumber
 joblib
 scikit-learn>=1.8
 matplotlib
+networkx
+pgmpy

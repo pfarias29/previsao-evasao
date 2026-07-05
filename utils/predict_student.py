@@ -2,10 +2,40 @@ import joblib
 import pandas as pd
 
 from utils.modelos import Modelos, NOMES_MODELOS
+import joblib
+
+from utils.kDependenceBayesian import KDBClassifier
+from utils.treeAugmentedNaiveBayes import TANClassifier
 
 
-def load_model(model_path: str):
-    return joblib.load(model_path)
+CUSTOM_MODELS = {
+    "KDBClassifier": KDBClassifier,
+    "TANClassifier": TANClassifier,
+}
+
+
+def load_model(path):
+
+    data = joblib.load(path)
+
+    # modelos sklearn
+    if "model" in data:
+        return data
+
+    # modelos personalizados
+    if "class" in data:
+
+        cls = CUSTOM_MODELS[data["class"]]
+
+        model = cls()
+        model.__dict__.update(data["state"])
+
+        return {
+            "model": model,
+            "columns": data["columns"]
+        }
+
+    raise ValueError("Formato de modelo desconhecido.")
 
 def predict_student_all_models(student: pd.DataFrame):
 
@@ -15,7 +45,6 @@ def predict_student_all_models(student: pd.DataFrame):
 
         nome_modelo = NOMES_MODELOS[modelo]
         model_path = modelo.value
-
 
         clf = load_model(model_path)
 
@@ -34,12 +63,16 @@ def predict_student_all_models(student: pd.DataFrame):
         )
 
         prediction = model.predict(student_model)[0]
+        proba = model.predict_proba(student_model)
             
-        probability = model.predict_proba(student_model)[0]
+        if isinstance(proba, pd.DataFrame):
+            probability = proba.iloc[0, 1]
+        else:
+            probability = proba[0][1]
 
         resultados[nome_modelo] = {
             "prediction": prediction,
-            "probability": probability[1]
+            "probability": probability
         }
 
     print(resultados)
