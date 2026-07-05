@@ -6,6 +6,7 @@ from utils.predict_student import predict_student_all_models
 from utils.modelos import Modelos
 from utils.exceptions import EmtpyDocumentException
 from utils.grafico_mencoes import grafico_mencoes_agrupadas
+from utils.metricas_modelos import get_metricas_modelos
 
 st.set_page_config(
     page_title="Área do Estudante",
@@ -71,6 +72,33 @@ def button_enviar_dados():
                 unsafe_allow_html=True
             ) 
         
+
+def apresentar_desempenho_modelos():
+
+    st.subheader("Desempenho dos Modelos")
+
+    st.markdown(
+        """
+        Os modelos abaixo foram avaliados utilizando uma base de dados histórica
+        de estudantes. As métricas apresentadas permitem comparar o desempenho
+        de cada algoritmo utilizado para prever o risco de evasão. Para as métricas
+        de precisão, recall e F1-score foi utilizada a média entre as predições de formação e evasão.
+        """
+    )
+
+    df = get_metricas_modelos()
+
+    df["Acurácia"] = df["Acurácia"].map("{:.2}%".format)
+    df["Precisão"] = df["Precisão"].map("{:.2}%".format)
+    df["Recall"] = df["Recall"].map("{:.2}%".format)
+    df["F1-Score"] = df["F1-Score"].map("{:.2}%".format)
+
+    st.dataframe(
+        df,
+        hide_index=True,
+        use_container_width=True
+    )
+
 def apresentar_graficos():
     st.markdown(
         """
@@ -100,12 +128,16 @@ def apresentar_graficos():
 st.title("👨‍🎓 Área do Estudante")
 
 st.markdown("""
-### 📌 O que você pode fazer aqui
+### O que você pode fazer aqui
 - Enviar seu histórico acadêmico
 - Visualizar suas disciplinas
 - Obter uma **previsão de evasão**
 """)
 
+
+st.divider()
+
+apresentar_desempenho_modelos()
 
 st.divider()
 
